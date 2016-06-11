@@ -68,7 +68,7 @@ local WH_FILL                = jive.ui.WH_FILL
 
 local jiveMain               = jiveMain
 local appletManager          = appletManager
-
+local math                   = math
 
 module(..., Framework.constants)
 oo.class(_M, Applet)
@@ -95,6 +95,8 @@ function param(self)
         return {
 		THUMB_SIZE = 40,
 		THUMB_SIZE_MENU = 40,
+		THUMB_SIZE_LINEAR = 72,   -- @TODO: look into value
+		THUMB_SIZE_PLAYLIST = 72, -- @TODO: look into value
 		NOWPLAYING_MENU = true,
 		-- NOWPLAYING_TRACKINFO_LINES used in assisting scroll behavior animation on NP
 		-- 3 is for a three line track, artist, and album (e.g., SBtouch)
@@ -301,6 +303,18 @@ function skin(self, s)
 		 nil,
 		 imgpath .. "5_line_lists/menu_sel_box_5line_press.png",
 		 imgpath .. "5_line_lists/menu_sel_box_5line_press_r.png",
+	})
+
+	local gridItemSelectionBox    = _loadTile(self, {
+		imgpath .. "grid_list/button_titlebar.png",
+		imgpath .. "grid_list/button_titlebar_tl.png",
+		imgpath .. "grid_list/button_titlebar_t.png",
+		imgpath .. "grid_list/button_titlebar_tr.png",
+		imgpath .. "grid_list/button_titlebar_r.png",
+		imgpath .. "grid_list/button_titlebar_br.png",
+		imgpath .. "grid_list/button_titlebar_b.png",
+		imgpath .. "grid_list/button_titlebar_bl.png",
+		imgpath .. "grid_list/button_titlebar_l.png",
 	})
 
 	local threeItemSelectionBox            = _loadHTile(self, {
@@ -648,7 +662,9 @@ function skin(self, s)
 
 	local textinputCursor = _loadImageTile(self, imgpath .. "Text_Entry/Keyboard_Touch/tch_cursor.png")
 
-	local THUMB_SIZE = self:param().THUMB_SIZE
+	local THUMB_SIZE = self:param().THUMB_SIZE -- @TODO: Could be removed
+	local THUMB_SIZE_G = self:param().THUMB_SIZE
+	local THUMB_SIZE_L = self:param().THUMB_SIZE_LINEAR
 
 	local TITLE_PADDING  = { 0, 15, 0, 15 }
 	local CHECK_PADDING  = { 2, 0, 6, 0 }
@@ -693,6 +709,11 @@ function skin(self, s)
 	local THREE_ITEM_HEIGHT = 72
 	local FIVE_ITEM_HEIGHT = 45
 	local TITLE_BUTTON_WIDTH = 76
+
+	-- alternatives for grid view
+	local ALBUMMENU_FONT_SIZE_G = 18
+	local ALBUMMENU_SMALL_FONT_SIZE_G = 16
+	local MENU_ITEM_ICON_PADDING_G = { 0, 0, 0, 0 }
 
 	local smallSpinny = {
 		img = _loadImage(self, "Alerts/wifi_connecting_sm.png"),
@@ -853,7 +874,11 @@ function skin(self, s)
                 },
 	}
 
+	local menu_height = math.floor((screenHeight - TITLE_HEIGHT) / FIVE_ITEM_HEIGHT) * FIVE_ITEM_HEIGHT
+	local grid_height = math.floor((screenHeight - TITLE_HEIGHT - 16) / 3) * 3
+
 	s.menu = {
+		h = menu_height,
 		position = LAYOUT_CENTER,
 		padding = { 0, 0, 0, 0 },
 		itemHeight = FIVE_ITEM_HEIGHT,
@@ -889,7 +914,27 @@ function skin(self, s)
 		bgImg = fiveItemBox,
 	}
 
-	s.item_play = _uses(s.item, {
+	s.itemG = {
+		order = { "icon", "text" },
+		orientation = 1,
+		padding = { 8, 4, 8, 0 },
+		text = {
+			padding = { 0, 2, 0, 4 },
+			align = "center",
+			w = WH_FILL,
+			h = WH_FILL,
+			font = _boldfont(20),
+			fg = TEXT_COLOR,
+			sh = TEXT_SH_COLOR,
+		},
+		icon = {
+			padding = MENU_ITEM_ICON_PADDING_G,
+			align = 'center',
+		},
+		bgImg = false,
+	}
+
+	s.item_play = _uses(s.item, { 
 		arrow = { img = false },
 	})
 	s.item_add = _uses(s.item, {
@@ -1641,15 +1686,49 @@ function skin(self, s)
 					img = _loadImage(self, "IconsResized/icon_loading" .. skinSuffix)
 				},
 			}),
-			selected = {
-				item = _uses(s.selected.item, {
+			item_play = _uses(s.itemG, {
+				icon = {
+					img = _loadImage(self, "IconsResized/icon_loading" .. skinSuffix)
+				},
+			}),
+			item_add = _uses(s.itemG, {
+				icon = {
+					img = _loadImage(self, "IconsResized/icon_loading" .. skinSuffix)
+				},
+			}),
+			item_choice = _uses(s.itemG, {
+				order  = { 'icon', 'text', 'check' },
+				text = {
+					padding = { 0, 0, 0, 0 },
+				},
+				choice = {
+					padding = { 0, 0, 0, 0 },
+					align = 'center',
+					font = _boldfont(32),
+					fg = TEXT_COLOR,
+					sh = TEXT_SH_COLOR,
+				},
+				icon = {
+					img = _loadImage(self, "IconsResized/icon_loading" .. skinSuffix),
+				},
+			}),
+			pressed = {
+				item = _uses(s.itemG, {
 					icon = {
 						img = _loadImage(self, "IconsResized/icon_loading" .. skinSuffix),
 					},
 				}),
 			},
+			selected = {
+				item = _uses(s.itemG, {
+					icon = {
+						img = _loadImage(self, "IconsResized/icon_loading" .. skinSuffix),
+					},
+					bgImg = gridItemSelectionBox,
+				}),
+			},
 			locked = {
-				item = _uses(s.locked.item, {
+				item = _uses(s.itemG, {
 					icon = {
 						img = _loadImage(self, "IconsResized/icon_loading" .. skinSuffix),
 					},
@@ -1664,11 +1743,143 @@ function skin(self, s)
 		padding = MENU_ITEM_ICON_PADDING,
 		align = 'center',
 	}
-	s.home_menu.menu.selected.item.icon_no_artwork = s.home_menu.menu.item.icon_no_artwork
-	s.home_menu.menu.locked.item.icon_no_artwork = s.home_menu.menu.item.icon_no_artwork
+	-- s.home_menu.menu.selected.item.icon_no_artwork = s.home_menu.menu.item.icon_no_artwork
+	-- s.home_menu.menu.locked.item.icon_no_artwork = s.home_menu.menu.item.icon_no_artwork
+	s.home_menu.menu.selected = {
+		item = _uses(s.home_menu.menu.item, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_choice = _uses(s.home_menu.menu.item_choice, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_play = _uses(s.home_menu.menu.item_play, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_add = _uses(s.home_menu.menu.item_add, {
+			bgImg = gridItemSelectionBox,
+		}),
+	}
 
 	-- icon_list window
-	s.icon_list = _uses(s.window, {
+	-- icon_list Grid
+	s.icon_listG = _uses(s.window, {
+		menu = {
+			itemsPerLine = 6,
+			itemHeight = grid_height / 3,
+			item = _uses(s.itemG, {
+				text = {
+					font = _font(ALBUMMENU_SMALL_FONT_SIZE_G),
+					line = {
+						{
+							font = _boldfont(ALBUMMENU_FONT_SIZE_G),
+							height = 30,
+						},
+						{
+							font = _font(ALBUMMENU_SMALL_FONT_SIZE_G),
+						},
+					},
+				},
+			})
+		},
+	})
+
+	s.icon_listG.menu.item_checked = _uses(s.icon_listG.menu.item, {
+		order = { 'icon', 'text', 'check', 'arrow' },
+		check = {
+			align = ITEM_ICON_ALIGN,
+			padding = CHECK_PADDING,
+			--img = _loadImage(self, "Icons/icon_check_5line.png")
+		},
+	})
+	s.icon_listG.menu.item_play = _uses(s.icon_listG.menu.item, { 
+		arrow = { img = false },
+	})
+	s.icon_listG.menu.albumcurrent = _uses(s.icon_listG.menu.item_play, {
+		arrow = { img = false }, --_loadImage(self, "Icons/icon_nplay_3line_off.png"),
+		--},
+		--text = { padding = 0, },
+		-- Bug 11482c#13, don't know why the bgImg has to be redefined again here, but this fixes the issue
+		--bgImg = fiveItemBox,
+	})
+	s.icon_listG.menu.item_add  = _uses(s.icon_listG.menu.item, { 
+		arrow = addArrow,
+	})
+	s.icon_listG.menu.item_no_arrow = _uses(s.icon_listG.menu.item, {
+		order = { 'icon', 'text' },
+	})
+	s.icon_listG.menu.item_checked_no_arrow = _uses(s.icon_listG.menu.item_checked, {
+		order = { 'icon', 'text', 'check' },
+	})
+
+	s.icon_listG.menu.selected = {
+		item = _uses(s.icon_listG.menu.item, {
+			bgImg = gridItemSelectionBox,
+		}),
+		albumcurrent = _uses(s.icon_listG.menu.albumcurrent, {
+			--arrow = { 
+			--	img = _loadImage(self, "Icons/icon_nplay_3line_sel.png"),
+			--},
+			bgImg = gridItemSelectionBox,
+		}),
+		item_checked = _uses(s.icon_listG.menu.item_checked, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_play = _uses(s.icon_listG.menu.item_play, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_add = _uses(s.icon_listG.menu.item_add, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_no_arrow = _uses(s.icon_listG.menu.item_no_arrow, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_checked_no_arrow = _uses(s.icon_listG.menu.item_checked_no_arrow, {
+			bgImg = gridItemSelectionBox,
+		}),
+	}
+	s.icon_listG.menu.pressed = {
+		item = _uses(s.icon_listG.menu.item, { 
+			bgImg = gridItemSelectionBox,
+		}),
+		albumcurrent = _uses(s.icon_listG.menu.albumcurrent, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_checked = _uses(s.icon_listG.menu.item_checked, { 
+			bgImg = gridItemSelectionBox,
+		}),
+		item_play = _uses(s.icon_listG.menu.item_play, { 
+			bgImg = gridItemSelectionBox,
+		}),
+		item_add = _uses(s.icon_listG.menu.item_add, { 
+			bgImg = gridItemSelectionBox,
+		}),
+		item_no_arrow = _uses(s.icon_listG.menu.item_no_arrow, { 
+			bgImg = gridItemSelectionBox,
+		}),
+		item_checked_no_arrow = _uses(s.icon_listG.menu.item_checked_no_arrow, { 
+			bgImg = gridItemSelectionBox,
+		}),
+	}
+	s.icon_listG.menu.locked = {
+		item = _uses(s.icon_listG.menu.pressed.item, {
+			arrow = smallSpinny
+		}),
+		item_checked = _uses(s.icon_listG.menu.pressed.item_checked, {
+			arrow = smallSpinny
+		}),
+		item_play = _uses(s.icon_listG.menu.pressed.item_play, {
+			arrow = smallSpinny
+		}),
+		item_add = _uses(s.icon_listG.menu.pressed.item_add, {
+			arrow = smallSpinny
+		}),
+		albumcurrent = _uses(s.icon_listG.menu.pressed.albumcurrent, {
+			arrow = smallSpinny
+		}),
+	}
+
+	-- icon_list Linear
+	s.icon_listL = _uses(s.window, {
 		menu = {
 			item = {
 				order = { "icon", "text", "arrow" },
@@ -1691,7 +1902,7 @@ function skin(self, s)
 					sh = TEXT_SH_COLOR,
 				},
 				icon = {
-					h = THUMB_SIZE,
+					h = THUMB_SIZE_L,
 					padding = MENU_ITEM_ICON_PADDING,
 					align = 'center',
 				},
@@ -1700,7 +1911,7 @@ function skin(self, s)
 		},
 	})
 
-	s.icon_list.menu.item_checked = _uses(s.icon_list.menu.item, {
+	s.icon_listL.menu.item_checked = _uses(s.icon_listL.menu.item, {
 		order = { 'icon', 'text', 'check', 'arrow' },
 		check = {
 			align = ITEM_ICON_ALIGN,
@@ -1708,93 +1919,96 @@ function skin(self, s)
 			img = _loadImage(self, "Icons/icon_check_5line.png")
 		},
 	})
-	s.icon_list.menu.item_play = _uses(s.icon_list.menu.item, {
+	s.icon_listL.menu.item_play = _uses(s.icon_listL.menu.item, { 
 		arrow = { img = false },
 	})
-	s.icon_list.menu.albumcurrent = _uses(s.icon_list.menu.item_play, {
-		arrow = {
+	s.icon_listL.menu.albumcurrent = _uses(s.icon_listL.menu.item_play, {
+		arrow = { 
 			img = _loadImage(self, "Icons/icon_nplay_3line_off.png"),
 		},
 		text = { padding = 0, },
 		-- Bug 11482c#13, don't know why the bgImg has to be redefined again here, but this fixes the issue
 		bgImg = fiveItemBox,
 	})
-	s.icon_list.menu.item_add  = _uses(s.icon_list.menu.item, {
+	s.icon_listL.menu.item_add  = _uses(s.icon_listL.menu.item, { 
 		arrow = addArrow,
 	})
-	s.icon_list.menu.item_no_arrow = _uses(s.icon_list.menu.item, {
+	s.icon_listL.menu.item_no_arrow = _uses(s.icon_listL.menu.item, {
 		order = { 'icon', 'text' },
 	})
-	s.icon_list.menu.item_checked_no_arrow = _uses(s.icon_list.menu.item_checked, {
+	s.icon_listL.menu.item_checked_no_arrow = _uses(s.icon_listL.menu.item_checked, {
 		order = { 'icon', 'text', 'check' },
 	})
 
-	s.icon_list.menu.selected = {
-    item = _uses(s.icon_list.menu.item, {
+	s.icon_listL.menu.selected = {
+		item = _uses(s.icon_listL.menu.item, {
 			bgImg = fiveItemSelectionBox
 		}),
-    albumcurrent       = _uses(s.icon_list.menu.albumcurrent, {
-			arrow = {
+		albumcurrent = _uses(s.icon_listL.menu.albumcurrent, {
+			arrow = { 
 				img = _loadImage(self, "Icons/icon_nplay_3line_sel.png"),
 			},
 			bgImg = fiveItemSelectionBox,
 		}),
-    item_checked        = _uses(s.icon_list.menu.item_checked, {
+		item_checked = _uses(s.icon_listL.menu.item_checked, {
 			bgImg = fiveItemSelectionBox
 		}),
-		item_play           = _uses(s.icon_list.menu.item_play, {
+		item_play = _uses(s.icon_listL.menu.item_play, {
 			bgImg = fiveItemSelectionBox
 		}),
-		item_add            = _uses(s.icon_list.menu.item_add, {
+		item_add = _uses(s.icon_listL.menu.item_add, {
 			bgImg = fiveItemSelectionBox
 		}),
-		item_no_arrow        = _uses(s.icon_list.menu.item_no_arrow, {
+		item_no_arrow = _uses(s.icon_listL.menu.item_no_arrow, {
 			bgImg = fiveItemSelectionBox
 		}),
-		item_checked_no_arrow = _uses(s.icon_list.menu.item_checked_no_arrow, {
+		item_checked_no_arrow = _uses(s.icon_listL.menu.item_checked_no_arrow, {
 			bgImg = fiveItemSelectionBox
 		}),
-  }
-  s.icon_list.menu.pressed = {
-    item = _uses(s.icon_list.menu.item, {
-			bgImg = fiveItemPressedBox
+	}
+	s.icon_listL.menu.pressed = {
+		item = _uses(s.icon_listL.menu.item, { 
+			bgImg = fiveItemPressedBox 
 		}),
-    albumcurrent = _uses(s.icon_list.menu.albumcurrent, {
+		albumcurrent = _uses(s.icon_listL.menu.albumcurrent, {
 			bgImg = fiveItemSelectionBox
 		}),
-    item_checked = _uses(s.icon_list.menu.item_checked, {
-			bgImg = fiveItemPressedBox
+		item_checked = _uses(s.icon_listL.menu.item_checked, { 
+			bgImg = fiveItemPressedBox 
 		}),
-    item_play = _uses(s.icon_list.menu.item_play, {
-			bgImg = fiveItemPressedBox
+		item_play = _uses(s.icon_listL.menu.item_play, { 
+			bgImg = fiveItemPressedBox 
 		}),
-    item_add = _uses(s.icon_list.menu.item_add, {
-			bgImg = fiveItemPressedBox
+		item_add = _uses(s.icon_listL.menu.item_add, { 
+			bgImg = fiveItemPressedBox 
 		}),
-    item_no_arrow = _uses(s.icon_list.menu.item_no_arrow, {
-			bgImg = fiveItemPressedBox
+		item_no_arrow = _uses(s.icon_listL.menu.item_no_arrow, { 
+			bgImg = fiveItemPressedBox 
 		}),
-    item_checked_no_arrow = _uses(s.icon_list.menu.item_checked_no_arrow, {
-			bgImg = fiveItemPressedBox
+		item_checked_no_arrow = _uses(s.icon_listL.menu.item_checked_no_arrow, { 
+			bgImg = fiveItemPressedBox 
 		}),
-  }
-	s.icon_list.menu.locked = {
-		item = _uses(s.icon_list.menu.pressed.item, {
+	}
+	s.icon_listL.menu.locked = {
+		item = _uses(s.icon_listL.menu.pressed.item, {
 			arrow = smallSpinny
 		}),
-		item_checked = _uses(s.icon_list.menu.pressed.item_checked, {
+		item_checked = _uses(s.icon_listL.menu.pressed.item_checked, {
 			arrow = smallSpinny
 		}),
-		item_play = _uses(s.icon_list.menu.pressed.item_play, {
+		item_play = _uses(s.icon_listL.menu.pressed.item_play, {
 			arrow = smallSpinny
 		}),
-		item_add = _uses(s.icon_list.menu.pressed.item_add, {
+		item_add = _uses(s.icon_listL.menu.pressed.item_add, {
 			arrow = smallSpinny
 		}),
-    albumcurrent = _uses(s.icon_list.menu.pressed.albumcurrent, {
+		albumcurrent = _uses(s.icon_listL.menu.pressed.albumcurrent, {
 			arrow = smallSpinny
 		}),
 	}
+
+	s.icon_list = _uses(s.icon_listG)
+	s.play_list = _uses(s.icon_listL)
 
 	-- list window with help text
 	s.help_list = _uses(s.text_list)
@@ -1841,16 +2055,16 @@ function skin(self, s)
 	s.track_list = _uses(s.text_list)
 
 	s.track_list.title = _uses(s.title, {
-		order = { 'lbutton', 'icon', 'text', 'rbutton' },
+		order = { 'icon' }, -- { 'lbutton', 'icon', 'text', 'rbutton' },
 		icon  = {
-			w = THUMB_SIZE,
+			w = THUMB_SIZE_L,
 			h = WH_FILL,
 			padding = { 10, 1, 8, 1 },
 		},
 	})
 
 	-- playlist same as icon list
-	s.play_list = _uses(s.icon_list)
+	-- s.play_list = _uses(s.icon_list) -- @TODO: may be deleted
 
 	-- toast_popup popup (is now text only)
 	s.toast_popup_textarea = {
@@ -2032,7 +2246,7 @@ function skin(self, s)
 			},
 			item = {
 				h = CM_MENU_HEIGHT,
-				order = { "text", "arrow" },
+				order = { "icon", "text", "arrow" },
 				padding = { ITEM_LEFT_PADDING, 0, 12, 0 },
 				text = {
 					padding = { 0, 4, 0, 0 },
@@ -2052,11 +2266,16 @@ function skin(self, s)
 					fg = TEXT_COLOR,
 					sh = TEXT_SH_COLOR,
 				},
+				icon = {
+					h = THUMB_SIZE_L,
+					padding = MENU_ITEM_ICON_PADDING,
+					align = 'center',
+				},
 				arrow = _uses(s.item.arrow),
 			},
 			selected = {
 				item = {
-					order = { "text", "arrow" },
+					order = { "icon", "text", "arrow" },
 					bgImg = fiveItemSelectionBox,
 					padding = { ITEM_LEFT_PADDING, 0, 12, 0 },
 					text = {
@@ -2077,15 +2296,22 @@ function skin(self, s)
 						fg = TEXT_COLOR,
 						sh = TEXT_SH_COLOR,
 					},
+					icon = {
+						h = THUMB_SIZE_L,
+						padding = MENU_ITEM_ICON_PADDING,
+						align = 'center',
+					},
 					arrow = _uses(s.item.arrow),
 				},
 			},
 
 		},
 	}
-
+	
+	-- FIXME find why the bgImg needs to be included here...
 	s.context_menu.menu.item_play = _uses(s.context_menu.menu.item, {
 		arrow = {img = playArrow.img},
+		bgImg = fiveItemBox,
 	})
 	s.context_menu.menu.selected.item_play = _uses(s.context_menu.menu.selected.item, {
 		arrow = {img = playArrow.img},
@@ -2093,6 +2319,7 @@ function skin(self, s)
 
 	s.context_menu.menu.item_insert = _uses(s.context_menu.menu.item, {
 		arrow = {img = addArrow.img},
+		bgImg = fiveItemBox,
 	})
 	s.context_menu.menu.selected.item_insert = _uses(s.context_menu.menu.selected.item, {
 		arrow = {img = addArrow.img},
@@ -2100,6 +2327,7 @@ function skin(self, s)
 
 	s.context_menu.menu.item_add = _uses(s.context_menu.menu.item, {
 		arrow = {img = addArrow.img},
+		bgImg = fiveItemBox,
 	})
 	s.context_menu.menu.selected.item_add = _uses(s.context_menu.menu.selected.item, {
 		arrow = {img = addArrow.img},
@@ -2107,6 +2335,7 @@ function skin(self, s)
 
 	s.context_menu.menu.item_playall = _uses(s.context_menu.menu.item, {
 		arrow = {img = playArrow.img},
+		bgImg = fiveItemBox,
 	})
 	s.context_menu.menu.selected.item_playall = _uses(s.context_menu.menu.selected.item, {
 		arrow = {img = playArrow.img},
@@ -2114,6 +2343,7 @@ function skin(self, s)
 
 	s.context_menu.menu.item_fav = _uses(s.context_menu.menu.item, {
 		arrow = {img = favItem.img},
+		bgImg = fiveItemBox,
 	})
 	s.context_menu.menu.selected.item_fav = _uses(s.context_menu.menu.selected.item, {
 		arrow = {img = favItem.img},
@@ -2121,6 +2351,7 @@ function skin(self, s)
 
 	s.context_menu.menu.item_no_arrow = _uses(s.context_menu.menu.item, {
 		order = { 'text' },
+		bgImg = fiveItemBox,
 	})
 	s.context_menu.menu.selected.item_no_arrow = _uses(s.context_menu.menu.selected.item, {
 		order = { 'text' },
@@ -2386,8 +2617,8 @@ function skin(self, s)
 
 
 	local _buttonicon = {
-		h   = THUMB_SIZE,
-		padding = MENU_ITEM_ICON_PADDING,
+		h   = THUMB_SIZE_G,
+		padding = MENU_ITEM_ICON_PADDING_G,
 		align = 'center',
 		img = false,
 	}
@@ -2420,21 +2651,32 @@ function skin(self, s)
 	}
 
 	local _popupicon = {
-    padding = 0,
-    border = { 22, 22, 0, 0 },
-    h = WH_FILL,
-    w = 146,
-  }
+		padding = 0,
+		border = { 22, 22, 0, 0 },
+		h = WH_FILL,
+		w = 146,
+	}
+
+	local no_artwork_iconG = _loadImage(self, "IconsResized/icon_album_noart" .. skinSuffix ):resize(THUMB_SIZE_G, THUMB_SIZE_G)
+	local no_artwork_iconL = _loadImage(self, "IconsResized/icon_album_noart" .. skinSuffix ):resize(THUMB_SIZE_L, THUMB_SIZE_L)
 
 	-- icon for albums with no artwork
 	s.icon_no_artwork = {
-		img = _loadImage(self, "IconsResized/icon_album_noart" .. skinSuffix ),
-		h = THUMB_SIZE,
+		img = no_artwork_iconG,
+		h   = THUMB_SIZE_G,
+		padding = MENU_ITEM_ICON_PADDING_G,
+		align = 'center',
+	}
+
+	-- alternative small artwork for playlists
+	s.icon_no_artwork_playlist = {
+		img = no_artwork_iconL,
+		h   = THUMB_SIZE_L,
 		padding = MENU_ITEM_ICON_PADDING,
 		align = 'center',
 	}
 
-	s.icon_no_artwork_playlist = _uses(s.icon_no_artwork)
+	-- s.icon_no_artwork_playlist = _uses(s.icon_no_artwork) -- @TODO: Obsolete by above
 
 	s.icon_connecting = _uses(_icon, {
 		img = _loadImage(self, "Alerts/wifi_connecting.png"),
@@ -2662,6 +2904,9 @@ function skin(self, s)
 	})
 	s.hm_playerpower = _uses(_buttonicon, {
 		img = _loadImage(self, "IconsResized/icon_power_off" .. skinSuffix),
+	})
+	s.hm_settingsScreen = _uses(_buttonicon, {
+		img = _loadImage(self, "IconsResized/icon_blank" .. skinSuffix),
 	})
 	s.hm_myMusicArtists = _uses(_buttonicon, {
 		img = _loadImage(self, "IconsResized/icon_ml_artist" .. skinSuffix),
