@@ -1,7 +1,7 @@
 --[[
 =head1 NAME
 
-applets.JogglerSkin.JogglerSkinApplet
+applets.JogglerGridSkin.JogglerGridSkinApplet
 
 =head1 DESCRIPTION
 
@@ -15,6 +15,7 @@ Built upon the work of 3guk, Tarkan Akdam and Justblair.
 Version 1.10 (10th April 2012)
 birdslikewires.co.uk
 
+Added grid layout by Johannes Hessellund (2016) based on HDGridSkin
 
 =head1 FUNCTIONS
 
@@ -93,8 +94,8 @@ end
 
 function param(self)
         return {
-		THUMB_SIZE = 40,
-		THUMB_SIZE_MENU = 40,
+		THUMB_SIZE = 120,
+		THUMB_SIZE_MENU = 120,
 		THUMB_SIZE_LINEAR = 72,   -- @TODO: look into value
 		THUMB_SIZE_PLAYLIST = 72, -- @TODO: look into value
 		NOWPLAYING_MENU = true,
@@ -662,7 +663,7 @@ function skin(self, s)
 
 	local textinputCursor = _loadImageTile(self, imgpath .. "Text_Entry/Keyboard_Touch/tch_cursor.png")
 
-	local THUMB_SIZE = self:param().THUMB_SIZE -- @TODO: Could be removed
+	-- local THUMB_SIZE = self:param().THUMB_SIZE -- @TODO: Could be removed
 	local THUMB_SIZE_G = self:param().THUMB_SIZE
 	local THUMB_SIZE_L = self:param().THUMB_SIZE_LINEAR
 
@@ -687,9 +688,9 @@ function skin(self, s)
 	local TITLE_HEIGHT = 65
 	local TITLE_FONT_SIZE = 20
 	local TITLEBAR_FONT_SIZE = 28
-	local ALBUMMENU_FONT_SIZE = 20
-	local ALBUMMENU_SMALL_FONT_SIZE = 16
-	local TEXTMENU_FONT_SIZE = 25
+	local ALBUMMENU_FONT_SIZE = 16
+	local ALBUMMENU_SMALL_FONT_SIZE = 14
+	local TEXTMENU_FONT_SIZE = 16
 	local POPUP_TEXT_SIZE_1 = 34
 	local POPUP_TEXT_SIZE_2 = 26
 	local TRACK_FONT_SIZE = 18
@@ -711,8 +712,8 @@ function skin(self, s)
 	local TITLE_BUTTON_WIDTH = 76
 
 	-- alternatives for grid view
-	local ALBUMMENU_FONT_SIZE_G = 18
-	local ALBUMMENU_SMALL_FONT_SIZE_G = 16
+	local ALBUMMENU_FONT_SIZE_G = 16
+	local ALBUMMENU_SMALL_FONT_SIZE_G = 14
 	local MENU_ITEM_ICON_PADDING_G = { 0, 0, 0, 0 }
 
 	local smallSpinny = {
@@ -866,16 +867,16 @@ function skin(self, s)
 		text = {
 			w = WH_FILL,
 			h = 100,
-                        padding = { 10, 160, 10, 0 },
-                        align = "center",
-                        font = _font(100),
-                        fg = TEXT_COLOR,
-                        sh = TEXT_SH_COLOR,
-                },
+      padding = { 10, 160, 10, 0 },
+      align = "center",
+      font = _font(100),
+      fg = TEXT_COLOR,
+      sh = TEXT_SH_COLOR,
+    },
 	}
 
 	local menu_height = math.floor((screenHeight - TITLE_HEIGHT) / FIVE_ITEM_HEIGHT) * FIVE_ITEM_HEIGHT
-	local grid_height = math.floor((screenHeight - TITLE_HEIGHT - 16) / 3) * 3
+	local grid_height = math.floor((screenHeight - TITLE_HEIGHT - 16) / 2) * 2
 
 	s.menu = {
 		h = menu_height,
@@ -907,8 +908,8 @@ function skin(self, s)
 			align = 'center',
 		},
 		arrow = {
-	      		align = ITEM_ICON_ALIGN,
-	      		img = _loadImage(self, "Icons/selection_right_5line.png"),
+	    align = ITEM_ICON_ALIGN,
+	    img = _loadImage(self, "Icons/selection_right_5line.png"),
 			padding = { 0, 0, 0, 0 },
 		},
 		bgImg = fiveItemBox,
@@ -934,7 +935,7 @@ function skin(self, s)
 		bgImg = false,
 	}
 
-	s.item_play = _uses(s.item, { 
+	s.item_play = _uses(s.item, {
 		arrow = { img = false },
 	})
 	s.item_add = _uses(s.item, {
@@ -1681,7 +1682,9 @@ function skin(self, s)
 
 	s.home_menu = _uses(s.text_list, {
 		menu = {
-			item = _uses(s.item, {
+			itemHeight = grid_height / 2,
+			itemsPerLine = 5,
+			item = _uses(s.itemG, {
 				icon = {
 					img = _loadImage(self, "IconsResized/icon_loading" .. skinSuffix)
 				},
@@ -1704,7 +1707,7 @@ function skin(self, s)
 				choice = {
 					padding = { 0, 0, 0, 0 },
 					align = 'center',
-					font = _boldfont(32),
+					font = _boldfont(TEXTMENU_FONT_SIZE),
 					fg = TEXT_COLOR,
 					sh = TEXT_SH_COLOR,
 				},
@@ -1744,8 +1747,22 @@ function skin(self, s)
 		align = 'center',
 	}
 	-- s.home_menu.menu.selected.item.icon_no_artwork = s.home_menu.menu.item.icon_no_artwork
-	-- s.home_menu.menu.locked.item.icon_no_artwork = s.home_menu.menu.item.icon_no_artwork
+	s.home_menu.menu.locked.item.icon_no_artwork = s.home_menu.menu.item.icon_no_artwork
 	s.home_menu.menu.selected = {
+		item = _uses(s.home_menu.menu.item, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_choice = _uses(s.home_menu.menu.item_choice, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_play = _uses(s.home_menu.menu.item_play, {
+			bgImg = gridItemSelectionBox,
+		}),
+		item_add = _uses(s.home_menu.menu.item_add, {
+			bgImg = gridItemSelectionBox,
+		}),
+	}
+	s.home_menu.menu.pressed = {
 		item = _uses(s.home_menu.menu.item, {
 			bgImg = gridItemSelectionBox,
 		}),
@@ -1764,15 +1781,15 @@ function skin(self, s)
 	-- icon_list Grid
 	s.icon_listG = _uses(s.window, {
 		menu = {
-			itemsPerLine = 6,
-			itemHeight = grid_height / 3,
+			itemsPerLine = 5,
+			itemHeight = grid_height / 2,
 			item = _uses(s.itemG, {
 				text = {
 					font = _font(ALBUMMENU_SMALL_FONT_SIZE_G),
 					line = {
 						{
 							font = _boldfont(ALBUMMENU_FONT_SIZE_G),
-							height = 30,
+							height = itemHeight,
 						},
 						{
 							font = _font(ALBUMMENU_SMALL_FONT_SIZE_G),
@@ -1791,7 +1808,7 @@ function skin(self, s)
 			--img = _loadImage(self, "Icons/icon_check_5line.png")
 		},
 	})
-	s.icon_listG.menu.item_play = _uses(s.icon_listG.menu.item, { 
+	s.icon_listG.menu.item_play = _uses(s.icon_listG.menu.item, {
 		arrow = { img = false },
 	})
 	s.icon_listG.menu.albumcurrent = _uses(s.icon_listG.menu.item_play, {
@@ -1801,7 +1818,7 @@ function skin(self, s)
 		-- Bug 11482c#13, don't know why the bgImg has to be redefined again here, but this fixes the issue
 		--bgImg = fiveItemBox,
 	})
-	s.icon_listG.menu.item_add  = _uses(s.icon_listG.menu.item, { 
+	s.icon_listG.menu.item_add  = _uses(s.icon_listG.menu.item, {
 		arrow = addArrow,
 	})
 	s.icon_listG.menu.item_no_arrow = _uses(s.icon_listG.menu.item, {
@@ -1816,7 +1833,7 @@ function skin(self, s)
 			bgImg = gridItemSelectionBox,
 		}),
 		albumcurrent = _uses(s.icon_listG.menu.albumcurrent, {
-			--arrow = { 
+			--arrow = {
 			--	img = _loadImage(self, "Icons/icon_nplay_3line_sel.png"),
 			--},
 			bgImg = gridItemSelectionBox,
@@ -1838,25 +1855,25 @@ function skin(self, s)
 		}),
 	}
 	s.icon_listG.menu.pressed = {
-		item = _uses(s.icon_listG.menu.item, { 
+		item = _uses(s.icon_listG.menu.item, {
 			bgImg = gridItemSelectionBox,
 		}),
 		albumcurrent = _uses(s.icon_listG.menu.albumcurrent, {
 			bgImg = gridItemSelectionBox,
 		}),
-		item_checked = _uses(s.icon_listG.menu.item_checked, { 
+		item_checked = _uses(s.icon_listG.menu.item_checked, {
 			bgImg = gridItemSelectionBox,
 		}),
-		item_play = _uses(s.icon_listG.menu.item_play, { 
+		item_play = _uses(s.icon_listG.menu.item_play, {
 			bgImg = gridItemSelectionBox,
 		}),
-		item_add = _uses(s.icon_listG.menu.item_add, { 
+		item_add = _uses(s.icon_listG.menu.item_add, {
 			bgImg = gridItemSelectionBox,
 		}),
-		item_no_arrow = _uses(s.icon_listG.menu.item_no_arrow, { 
+		item_no_arrow = _uses(s.icon_listG.menu.item_no_arrow, {
 			bgImg = gridItemSelectionBox,
 		}),
-		item_checked_no_arrow = _uses(s.icon_listG.menu.item_checked_no_arrow, { 
+		item_checked_no_arrow = _uses(s.icon_listG.menu.item_checked_no_arrow, {
 			bgImg = gridItemSelectionBox,
 		}),
 	}
@@ -1919,18 +1936,18 @@ function skin(self, s)
 			img = _loadImage(self, "Icons/icon_check_5line.png")
 		},
 	})
-	s.icon_listL.menu.item_play = _uses(s.icon_listL.menu.item, { 
+	s.icon_listL.menu.item_play = _uses(s.icon_listL.menu.item, {
 		arrow = { img = false },
 	})
 	s.icon_listL.menu.albumcurrent = _uses(s.icon_listL.menu.item_play, {
-		arrow = { 
+		arrow = {
 			img = _loadImage(self, "Icons/icon_nplay_3line_off.png"),
 		},
 		text = { padding = 0, },
 		-- Bug 11482c#13, don't know why the bgImg has to be redefined again here, but this fixes the issue
 		bgImg = fiveItemBox,
 	})
-	s.icon_listL.menu.item_add  = _uses(s.icon_listL.menu.item, { 
+	s.icon_listL.menu.item_add  = _uses(s.icon_listL.menu.item, {
 		arrow = addArrow,
 	})
 	s.icon_listL.menu.item_no_arrow = _uses(s.icon_listL.menu.item, {
@@ -1945,7 +1962,7 @@ function skin(self, s)
 			bgImg = fiveItemSelectionBox
 		}),
 		albumcurrent = _uses(s.icon_listL.menu.albumcurrent, {
-			arrow = { 
+			arrow = {
 				img = _loadImage(self, "Icons/icon_nplay_3line_sel.png"),
 			},
 			bgImg = fiveItemSelectionBox,
@@ -1967,26 +1984,26 @@ function skin(self, s)
 		}),
 	}
 	s.icon_listL.menu.pressed = {
-		item = _uses(s.icon_listL.menu.item, { 
-			bgImg = fiveItemPressedBox 
+		item = _uses(s.icon_listL.menu.item, {
+			bgImg = fiveItemPressedBox
 		}),
 		albumcurrent = _uses(s.icon_listL.menu.albumcurrent, {
 			bgImg = fiveItemSelectionBox
 		}),
-		item_checked = _uses(s.icon_listL.menu.item_checked, { 
-			bgImg = fiveItemPressedBox 
+		item_checked = _uses(s.icon_listL.menu.item_checked, {
+			bgImg = fiveItemPressedBox
 		}),
-		item_play = _uses(s.icon_listL.menu.item_play, { 
-			bgImg = fiveItemPressedBox 
+		item_play = _uses(s.icon_listL.menu.item_play, {
+			bgImg = fiveItemPressedBox
 		}),
-		item_add = _uses(s.icon_listL.menu.item_add, { 
-			bgImg = fiveItemPressedBox 
+		item_add = _uses(s.icon_listL.menu.item_add, {
+			bgImg = fiveItemPressedBox
 		}),
-		item_no_arrow = _uses(s.icon_listL.menu.item_no_arrow, { 
-			bgImg = fiveItemPressedBox 
+		item_no_arrow = _uses(s.icon_listL.menu.item_no_arrow, {
+			bgImg = fiveItemPressedBox
 		}),
-		item_checked_no_arrow = _uses(s.icon_listL.menu.item_checked_no_arrow, { 
-			bgImg = fiveItemPressedBox 
+		item_checked_no_arrow = _uses(s.icon_listL.menu.item_checked_no_arrow, {
+			bgImg = fiveItemPressedBox
 		}),
 	}
 	s.icon_listL.menu.locked = {
@@ -2307,7 +2324,7 @@ function skin(self, s)
 
 		},
 	}
-	
+
 	-- FIXME find why the bgImg needs to be included here...
 	s.context_menu.menu.item_play = _uses(s.context_menu.menu.item, {
 		arrow = {img = playArrow.img},
