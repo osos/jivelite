@@ -690,7 +690,7 @@ function skin(self, s)
 	local TITLEBAR_FONT_SIZE = 28
 	local ALBUMMENU_FONT_SIZE = 16
 	local ALBUMMENU_SMALL_FONT_SIZE = 14
-	local TEXTMENU_FONT_SIZE = 16
+	local TEXTMENU_FONT_SIZE = 18
 	local POPUP_TEXT_SIZE_1 = 34
 	local POPUP_TEXT_SIZE_2 = 26
 	local TRACK_FONT_SIZE = 18
@@ -1891,6 +1891,12 @@ function skin(self, s)
 			arrow = smallSpinny
 		}),
 		albumcurrent = _uses(s.icon_listG.menu.pressed.albumcurrent, {
+			arrow = smallSpinny
+		}),
+		item_no_arrow = _uses(s.icon_listG.menu.pressed.item_no_arrow, {
+			arrow = smallSpinny
+		}),
+		item_checked_no_arrow = _uses(s.icon_listG.menu.pressed.item_checked_no_arrow, {
 			arrow = smallSpinny
 		}),
 	}
